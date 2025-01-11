@@ -1,63 +1,78 @@
 (function() {
-    emailjs.init('YOUR_PUBLIC_KEY');
+    emailjs.init("T7T2edJXw6m31nRtl");
 })();
 
 window.onload = function() {
-    const form = document.getElementById('wf-form-Contact-6-Form');
-    const successMessage = document.querySelector('.success-message-2');
-    const errorMessage = document.querySelector('.error-message');
+    // Disable Webflow's default form handling
+    Webflow.push(function() {
+        $('#wf-form-Contact-6-Form').submit(function(e) {
+            e.preventDefault();
+        });
+    });
 
-    form.addEventListener('submit', function(event) {
+    const form = document.getElementById("wf-form-Contact-6-Form");
+    const successMessage = document.querySelector(".success-message-2");
+    const errorMessage = document.querySelector(".error-message");
+
+    form.addEventListener("submit", async function(event) {
         event.preventDefault();
-        
+
         const submitButton = this.querySelector('input[type="submit"]');
         const originalButtonText = submitButton.value;
-        
-        submitButton.value = 'Sending...';
+
+        // Disable the submit button and show loading state
+        submitButton.value = "Sending...";
         submitButton.disabled = true;
 
-        successMessage.style.display = 'none';
-        errorMessage.style.display = 'none';
+        // Hide any existing messages
+        successMessage.style.display = "none";
+        errorMessage.style.display = "none";
 
+        // Get form data
         const formData = {
-            name: document.getElementById('Contact-6-First-Name').value.trim(),
-            email: document.getElementById('Contact-6-Email').value.trim(),
-            message: document.getElementById('Contact-6-Message').value.trim()
+            name: document.getElementById("Contact-6-First-Name").value.trim(),
+            email: document.getElementById("Contact-6-Email").value.trim(),
+            message: document.getElementById("Contact-6-Message").value.trim(),
         };
 
+        // Validate form data
         if (!formData.name || !formData.email || !formData.message) {
-            errorMessage.querySelector('.error-text').textContent = 'Please fill in all fields.';
-            errorMessage.style.display = 'block';
+            errorMessage.querySelector(".error-text").textContent = "Please fill in all fields.";
+            errorMessage.style.display = "block";
             submitButton.value = originalButtonText;
             submitButton.disabled = false;
             return;
         }
 
-        emailjs.send(
-            'YOUR_SERVICE_ID',
-            'YOUR_TEMPLATE_ID',
-            {
-                from_name: formData.name,
-                from_email: formData.email,
-                message: formData.message,
-                to_email: 'fes@nsut.ac.in'
-            }
-        ).then(
-            function(response) {
-                console.log('SUCCESS!', response.status, response.text);
-                form.style.display = 'none';  // Hide form after successful submission
-                successMessage.style.display = 'block';
-                form.reset();
-            },
-            function(error) {
-                console.log('FAILED...', error);
-                errorMessage.querySelector('.error-text').textContent = 
-                    'Oops! Something went wrong while submitting the form. Please try again later.';
-                errorMessage.style.display = 'block';
-            }
-        ).finally(function() {
+        try {
+            const response = await emailjs.send(
+                "service_5s770tj",
+                "template_94wuhlj",
+                {
+                    from_name: formData.name,
+                    from_email: formData.email,
+                    message: formData.message,
+                }
+            );
+
+            console.log("SUCCESS!", response.status, response.text);
+            
+            // Show success message using Webflow's classes
+            form.style.display = "none";
+            successMessage.classList.add("w-form-done");
+            successMessage.style.display = "block";
+            form.reset();
+        } catch (error) {
+            console.error("FAILED...", error);
+            
+            // Show error message using Webflow's classes
+            errorMessage.classList.add("w-form-fail");
+            errorMessage.style.display = "block";
+            errorMessage.querySelector(".error-text").textContent = 
+                "Oops! Something went wrong while submitting the form. Please try again later.";
+        } finally {
             submitButton.value = originalButtonText;
             submitButton.disabled = false;
-        });
+        }
     });
 };
